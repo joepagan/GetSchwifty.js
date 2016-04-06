@@ -12,7 +12,7 @@ var canvas = document.getElementById("canvas"),
   lastTime = +new Date(),
   updateAndRender = true;
 
-img.src = "http://farm1.staticflickr.com//706//21365468095_a808e2c1ac_k.jpg";
+img.src = "resources/site/images/rick-and-morty-get-schwifty.jpg";
 
 //   // set height & width
 canvas.width = window.innerWidth;
