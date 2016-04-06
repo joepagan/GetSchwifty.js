@@ -1,0 +1,32 @@
+# password protect your test environment so google doesn't index the dev site!
+
+RewriteEngine on
+RewriteBase /
+Options +FollowSymLinks
+
+# Redirect visitors during maintenance
+#RewriteCond %{REMOTE_ADDR} !^127\.0\.0\.1
+#RewriteCond %{REMOTE_ADDR} !^195\.171\.21\.38
+#RewriteCond %{REMOTE_ADDR} !^81\.138\.51\.6
+#RewriteCond %{REMOTE_ADDR} !^193\.169\.192\.20
+#RewriteCond %{REQUEST_URI} !/maintenance/$ [NC]
+#RewriteCond %{REQUEST_URI} !\.(jpg|png|gif) [NC]
+#RewriteRule .* /maintenance/ [R=302,L]
+
+# 301 Redirect example: basic
+# RedirectMatch 301 /old-section http://www.your-domain.com/new-section
+
+# 301 Redirect example: with GET parameters
+# RewriteCond %{QUERY_STRING} ^page=view&p=(.*)$
+# RewriteRule (.*) /product?id=%1 [R=301,L]
+
+# 301 Redirect example: a section including subpages
+# RewriteRule ^existing-section(.*)$ http://www.your-domain.com/new-section$1 [R=301,L]
+
+# Make sure URL contains primary domain and starts with www. (excluding test domain)
+# RewriteCond %{HTTP_HOST} !www.your-domain.com$ [NC]
+# RewriteRule ^(.*)$ http://www.your-domain.com/$1 [R=301,L]
+
+# Route requests through index.php except for the following
+#RewriteCond $1 !^(favicon\.ico|robots\.txt|index\.php|themes|content|images|javascript|stylesheets|sitemap\.xml) [NC]
+#RewriteRule ^(.*)$ /index.php/$1 [L]
