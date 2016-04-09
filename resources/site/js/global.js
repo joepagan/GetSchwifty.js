@@ -114,7 +114,6 @@ img.onload = function(){
 
   Block.prototype.render = function(){
     context.drawImage(img, this.sx, this.sy, this.sWidth, this.sHeight, this.x, this.y, this.w, this.h);
-    //console.log(img);
   };
 
     //draw the screen
