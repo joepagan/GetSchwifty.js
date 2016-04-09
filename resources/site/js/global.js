@@ -1,3 +1,29 @@
+// paul irish wankyness
+(function() {
+    var lastTime = 0;
+    var vendors = ['ms', 'moz', 'webkit', 'o'];
+    for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+        window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+        window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame']
+                                   || window[vendors[x]+'CancelRequestAnimationFrame'];
+    }
+
+    if (!window.requestAnimationFrame)
+        window.requestAnimationFrame = function(callback, element) {
+            var currTime = new Date().getTime();
+            var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+            var id = window.setTimeout(function() { callback(currTime + timeToCall); },
+              timeToCall);
+            lastTime = currTime + timeToCall;
+            return id;
+        };
+
+    if (!window.cancelAnimationFrame)
+        window.cancelAnimationFrame = function(id) {
+            clearTimeout(id);
+        };
+}());
+
 // GetSchwifty.js
 var canvas = document.getElementById("canvas"),
   context = canvas.getContext("2d"),
@@ -8,9 +34,9 @@ var canvas = document.getElementById("canvas"),
   workingPiece = 0,
   blocks = [],
   activeBlocks = [],
-  minWait = 10,
-  lastTime = +new Date(),
-  updateAndRender = true;
+  updateAndRender = true,
+  drawRequestID,
+  drawTimeout;
 
 img.src = "resources/site/images/rick-and-morty-get-schwifty.jpg";
 
@@ -19,13 +45,6 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 img.onload = function(){
-
-  //update and animate the screen
-  var FPS = 60;
-  var drawInterval = setInterval(function() {
-    //update();
-    draw();
-  }, 1000/FPS);
 
   function theLoop(){
     var loopCount = 0;
@@ -96,46 +115,50 @@ img.onload = function(){
     //console.log(img);
   };
 
-  //draw the screen
-  function draw() {
+    //draw the screen
+    function draw() {
+        drawTimeout = setTimeout(function() {
+            drawRequestID = window.requestAnimationFrame(draw);
 
-    // This stops active blocks from growing larger than intended
-      if(activeBlocks.length <= blocks.length){
-        if(+new Date() > lastTime + minWait){
-          lastTime = +new Date();
+            // This stops active blocks from growing larger than intended
+            if(activeBlocks.length <= blocks.length){
 
-          activeBlocks.push(blocks[workingPiece]);
+              activeBlocks.push(blocks[workingPiece]);
 
-          blocks[workingPiece];
+              blocks[workingPiece];
 
-          if(workingPiece <= totalPieces){
-            workingPiece = workingPiece+1;
-          }else{
-            workingPiece = 0;
-          }
-        }
-      }
+              if(workingPiece <= totalPieces){
+                workingPiece = workingPiece+1;
+              }else{
+                workingPiece = 0;
+              }
 
-      context.clearRect(0,0,canvas.width, canvas.height);
+            }
 
-      for(var ei = 0; ei < activeBlocks.length; ++ei){
+            context.clearRect(0,0,canvas.width, canvas.height);
 
-        if((blocks[blocks.length-1].x != blocks[blocks.length-1].toX)){
-          updateAndRender = true;
+            for(var ei = 0; ei < activeBlocks.length; ++ei){
 
-        }else{
-          updateAndRender = false;
-          clearInterval(drawInterval);
-        }
+                if((blocks[blocks.length-1].x != blocks[blocks.length-1].toX)){
+                  updateAndRender = true;
 
-        if(updateAndRender == true){
-          // For some reason this still fires for 70 loops, not sure why, though this undefined IF at least stops errors in the console
-          if("undefined" !== typeof activeBlocks[ei]){
-            activeBlocks[ei].update();
-            activeBlocks[ei].render();
-          }
-        }
-      }
+                }else{
+                  updateAndRender = false;
+                  //clearInterval(drawInterval);
+                  window.cancelAnimationFrame(drawRequestID);
+                  clearTimeout(drawTimeout);
+                }
 
-  };
+                if(updateAndRender == true){
+                  // For some reason this still fires for 70 loops, not sure why, though this undefined IF at least stops errors in the console
+                  if("undefined" !== typeof activeBlocks[ei]){
+                    activeBlocks[ei].update();
+                    activeBlocks[ei].render();
+                  }
+                }
+            }
+
+        }, 1000 / 60);
+    }
+    draw();
 }
