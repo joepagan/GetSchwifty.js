@@ -32,6 +32,8 @@ var canvas = document.getElementById("canvas"),
   columnPieces = 10,
   totalPieces = rowPieces*columnPieces,
   workingPiece = 0,
+  yUpdateSpeed = 1000,
+  xUpdateSpeed = 100,
   blocks = [],
   activeBlocks = [],
   updateAndRender = true,
@@ -94,17 +96,17 @@ img.onload = function(){
   Block.prototype.update = function(){
     // so if the increment is NOT enlarged by "1" the position could final up being offset
     if(this.y < this.toY){
-        this.y+=40;
+        this.y+=yUpdateSpeed;
     }
-    //reset the y pos
+    //reset the y pos if y ends up being larger than it's  desired value.
     if(this.y > this.toY){
       this.y = this.toY;
     }
     // so if the increment is NOT enlarged by "1" the position could final up being offset
     if(this.x < this.toX){
-      this.x+=40;
+      this.x+=xUpdateSpeed;
     }
-    // reset the x pos
+    // reset the x pos if x ends up being larger than it's desired value.
     if(this.x > this.toX){
       this.x = this.toX;
     }
@@ -139,12 +141,10 @@ img.onload = function(){
 
             for(var ei = 0; ei < activeBlocks.length; ++ei){
 
-                if((blocks[blocks.length-1].x != blocks[blocks.length-1].toX)){
+                if((blocks[blocks.length-1].x != blocks[blocks.length-1].toX) || (blocks[blocks.length-1].y != blocks[blocks.length-1].toY)){
                   updateAndRender = true;
-
                 }else{
                   updateAndRender = false;
-                  //clearInterval(drawInterval);
                   window.cancelAnimationFrame(drawRequestID);
                   clearTimeout(drawTimeout);
                 }
