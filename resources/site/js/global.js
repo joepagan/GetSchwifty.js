@@ -5,7 +5,7 @@
     for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
         window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
         window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame']
-                                   || window[vendors[x]+'CancelRequestAnimationFrame'];
+       || window[vendors[x]+'CancelRequestAnimationFrame'];
     }
 
     if (!window.requestAnimationFrame)
@@ -28,17 +28,20 @@
 var canvas = document.getElementById("canvas"),
   context = canvas.getContext("2d"),
   img = new Image(),
-  rowPieces = 10,
-  columnPieces = 10,
+  rowPieces = 4,
+  columnPieces = 4,
   totalPieces = rowPieces*columnPieces,
   workingPiece = 0,
-  yUpdateSpeed = 1000,
-  xUpdateSpeed = 100,
+  yUpdateSpeed = 100, // the amount of pixels it will update per iteration
+  xUpdateSpeed = 100, // the amount of pixels it will update per iteration
   blocks = [],
   activeBlocks = [],
   updateAndRender = true,
   drawRequestID,
-  drawTimeout;
+  drawTimeout,
+  preStartSySxAnimationFlag = true;
+  startSySxAnimation = false,
+  startSySxAnimationFunctionJustOnce = false;
 
 img.src = "resources/site/images/rick-and-morty-get-schwifty.jpg";
 
@@ -58,11 +61,15 @@ img.onload = function(){
             (img.width/rowPieces), // sWidth
             (canvas.height/columnPieces), // h
             (img.height/columnPieces), // sHeight
-            ((img.width/rowPieces)*rowCount), //sx
+            ((img.width/rowPieces)*rowCount), //sx - this will eventually change so we need the fromSx variable below
+            ((img.width/rowPieces)*rowCount), //fromSx
+            0, // toSx - get defined later
             ((canvas.width/rowPieces)*rowCount), //x
             (canvas.width/rowPieces), // fromX
             ((canvas.width/rowPieces)*rowCount), // toX
             ((img.height/columnPieces)*colCount), // sy
+            ((img.height/columnPieces)*colCount), // fromSy - this will eventually change so we need the fromSy variable below
+            0, // toSy - gets defined later
             ((canvas.height/columnPieces)*colCount), // y
             (canvas.height/columnPieces), // fromY
             ((canvas.height/columnPieces)*colCount), // toY
@@ -77,16 +84,20 @@ img.onload = function(){
 
   theLoop();
 
-  function Block(w, sWidth, h, sHeight, sx, x, fromX, toX, sy, y, fromY, toY, loopCount){
+  function Block(w, sWidth, h, sHeight, sx, fromSx, toSx, x, fromX, toX, sy, fromSy, toSy, y, fromY, toY, loopCount){
     this.w = w;
     this.sWidth = sWidth;
     this.h = h;
     this.sHeight = sHeight;
     this.sx = sx;
+    this.fromSx = fromSx;
+    this.toSx = toSx;
     this.x = -x;
     this.fromX = fromX;
     this.toX = toX;
     this.sy = sy;
+    this.fromSy = fromSy;
+    this.toSy = toSy;
     this.y = -y;
     this.fromY = fromY;
     this.toY = toY;
@@ -110,11 +121,67 @@ img.onload = function(){
     if(this.x > this.toX){
       this.x = this.toX;
     }
+
+    if(startSySxAnimation === true){
+
+        if(this.toSy > this.fromSy){
+            if(this.sy < this.toSy){
+                this.sy+=yUpdateSpeed;
+            } else{
+                this.sy = this.toSy;
+            }
+        }
+
+        if(this.toSy < this.fromSy){
+            if(this.sy > this.toSy){
+                this.sy-=yUpdateSpeed;
+            } else{
+                this.sy = this.toSy;
+            }
+        }
+
+
+        if(this.toSx > this.fromSx){
+
+            if(this.sx < this.toSx){
+                this.sx+=xUpdateSpeed;
+            } else{
+                this.sx = this.toSx;
+            }
+        }
+
+
+        if(this.toSx < this.fromSx){
+            if(this.sx > this.toSx){
+                this.sx-=xUpdateSpeed;
+            } else{
+                this.sx = this.toSx;
+            }
+        }
+
+    }
   };
 
   Block.prototype.render = function(){
     context.drawImage(img, this.sx, this.sy, this.sWidth, this.sHeight, this.x, this.y, this.w, this.h);
   };
+
+      function startSySxAnimationFunction(){
+          if(startSySxAnimationFunctionJustOnce === true){
+              blocks.reverse();
+
+              for(var ei = 0; ei < activeBlocks.length-1; ++ei){
+                  activeBlocks[ei].toSy = blocks[ei].fromSy;
+                  activeBlocks[ei].toSx = blocks[ei].fromSx;
+              }
+
+              //window.cancelAnimationFrame(drawRequestID);
+              //clearTimeout(drawTimeout);
+
+              startSySxAnimation = true; // This is for the block update function
+          }
+          startSySxAnimationFunctionJustOnce = false;
+      }
 
     //draw the screen
     function draw() {
@@ -143,9 +210,17 @@ img.onload = function(){
                 if((blocks[blocks.length-1].x != blocks[blocks.length-1].toX) || (blocks[blocks.length-1].y != blocks[blocks.length-1].toY)){
                   updateAndRender = true;
                 }else{
-                  updateAndRender = false;
-                  window.cancelAnimationFrame(drawRequestID);
-                  clearTimeout(drawTimeout);
+                  //updateAndRender = false;
+                  //console.log('settimeout');
+                  if(preStartSySxAnimationFlag === true){
+                      setTimeout(function(){
+                          startSySxAnimationFunctionJustOnce = true;
+                          startSySxAnimationFunction();
+                      }, 2000);
+                      preStartSySxAnimationFlag = false;
+                  }
+                  //window.cancelAnimationFrame(drawRequestID);
+                  //clearTimeout(drawTimeout);
                 }
 
                 if(updateAndRender == true){
