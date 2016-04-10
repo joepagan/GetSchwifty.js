@@ -40,8 +40,10 @@ var canvas = document.getElementById("canvas"),
   drawRequestID,
   drawTimeout,
   preStartSySxAnimationFlag = true;
+  resetSySxAnimation = false,
   startSySxAnimation = false,
-  startSySxAnimationFunctionJustOnce = false;
+  startSySxAnimationFunctionJustOnce = false,
+  sySxAnimationReset = true;
 
 img.src = "resources/site/images/rick-and-morty-get-schwifty.jpg";
 
@@ -140,9 +142,7 @@ img.onload = function(){
             }
         }
 
-
         if(this.toSx > this.fromSx){
-
             if(this.sx < this.toSx){
                 this.sx+=xUpdateSpeed;
             } else{
@@ -158,8 +158,47 @@ img.onload = function(){
                 this.sx = this.toSx;
             }
         }
+    }
+
+    if(resetSySxAnimation === true){
+
+        //console.log(this.sy +"--"+ this.fromSy);
+
+        if(this.sy >= this.fromSy){
+            if(this.sy > this.toSy){
+                this.sy-=yUpdateSpeed;
+            } else{
+                this.sy = this.toSy;
+            }
+        }
+
+        if(this.sy <= this.fromSy){
+            if(this.sy < this.toSy){
+                this.sy+=yUpdateSpeed;
+            } else{
+                this.sy = this.toSy;
+            }
+        }
+
+        if(this.sx >= this.fromSx){
+            if(this.sx > this.toSx){
+                this.sx-=xUpdateSpeed;
+            } else{
+                this.sx = this.toSx;
+            }
+        }
+
+
+        if(this.sx <= this.fromSx){
+            if(this.sx < this.toSx){
+                this.sx+=xUpdateSpeed;
+            } else{
+                this.sx = this.toSx;
+            }
+        }
 
     }
+
   };
 
   Block.prototype.render = function(){
@@ -174,11 +213,22 @@ img.onload = function(){
                   activeBlocks[ei].toSy = blocks[ei].fromSy;
                   activeBlocks[ei].toSx = blocks[ei].fromSx;
               }
-
-              //window.cancelAnimationFrame(drawRequestID);
-              //clearTimeout(drawTimeout);
-
               startSySxAnimation = true; // This is for the block update function
+          }
+          startSySxAnimationFunctionJustOnce = false;
+      }
+
+      function resetSySxAnimationFunction(){
+          if(startSySxAnimationFunctionJustOnce === true){
+              blocks.reverse();
+
+              for(var ei = 0; ei < activeBlocks.length-1; ++ei){
+                  activeBlocks[ei].toSy = blocks[ei].fromSy;
+                  activeBlocks[ei].toSx = blocks[ei].fromSx;
+                  activeBlocks[ei].fromSy = activeBlocks[ei].sy;
+                  activeBlocks[ei].fromSx = activeBlocks[ei].sx;
+              }
+              resetSySxAnimation = true; // This is for the block update function
           }
           startSySxAnimationFunctionJustOnce = false;
       }
@@ -211,13 +261,27 @@ img.onload = function(){
                   updateAndRender = true;
                 }else{
                   //updateAndRender = false;
-                  //console.log('settimeout');
                   if(preStartSySxAnimationFlag === true){
                       setTimeout(function(){
                           startSySxAnimationFunctionJustOnce = true;
                           startSySxAnimationFunction();
                       }, 2000);
                       preStartSySxAnimationFlag = false;
+                  }
+                  // post sysxanimation
+                  if(activeBlocks[0].i == blocks[blocks.length-1].i){
+                      if(activeBlocks[0].sx == activeBlocks[0].toSx && activeBlocks[0].sy == activeBlocks[0].toSy){
+
+                          if(sySxAnimationReset === true){
+                              sySxAnimationReset = false;
+                              setTimeout(function(){
+                                  startSySxAnimationFunctionJustOnce = true;
+                                  resetSySxAnimationFunction();
+                              }, 2000);
+                          }
+
+                      }
+
                   }
                   //window.cancelAnimationFrame(drawRequestID);
                   //clearTimeout(drawTimeout);
