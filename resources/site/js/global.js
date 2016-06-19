@@ -28,19 +28,21 @@
 var canvas = document.getElementById("canvas"),
   context = canvas.getContext("2d"),
   img = new Image(),
-  rowPieces = 4,
-  columnPieces = 4,
+  rowPieces = 8,
+  columnPieces = 8,
   totalPieces = rowPieces*columnPieces,
   workingPiece = 0,
-  yUpdateSpeed = 100, // the amount of pixels it will update per iteration
-  xUpdateSpeed = 100, // the amount of pixels it will update per iteration
+  yUpdateSpeed = 50, // the amount of pixels it will update per iteration
+  xUpdateSpeed = 50, // the amount of pixels it will update per iteration
   blocks = [],
   activeBlocks = [],
   updateAndRender = true,
   drawRequestID,
   drawTimeout,
-  preStartSySxAnimationFlag = true;
+  preStartSySxAnimationFlag = true,
   resetSySxAnimation = false,
+    blocksAxisData = [],
+    xOrYEqualsFalse = false,
   startSySxAnimation = false,
   startSySxAnimationFunctionJustOnce = false,
   sySxAnimationReset = true;
@@ -104,6 +106,8 @@ img.onload = function(){
     this.fromY = fromY;
     this.toY = toY;
     this.i = loopCount;
+    this.axisYFullyReset = false;
+    this.axisXFullyReset = false;
   }
 
   Block.prototype.update = function(){
@@ -126,76 +130,52 @@ img.onload = function(){
 
     if(startSySxAnimation === true){
 
-        if(this.toSy > this.fromSy){
-            if(this.sy < this.toSy){
-                this.sy+=yUpdateSpeed;
-            } else{
-                this.sy = this.toSy;
-            }
+        if(this.sy < this.toSy){
+            this.sy+=yUpdateSpeed;
+        } else{
+            this.sy = this.toSy;
         }
 
-        if(this.toSy < this.fromSy){
-            if(this.sy > this.toSy){
-                this.sy-=yUpdateSpeed;
-            } else{
-                this.sy = this.toSy;
-            }
+        if(this.sx < this.toSx){
+            this.sx+=xUpdateSpeed;
+        } else{
+            this.sx = this.toSx;
         }
 
-        if(this.toSx > this.fromSx){
-            if(this.sx < this.toSx){
-                this.sx+=xUpdateSpeed;
-            } else{
-                this.sx = this.toSx;
-            }
-        }
-
-
-        if(this.toSx < this.fromSx){
-            if(this.sx > this.toSx){
-                this.sx-=xUpdateSpeed;
-            } else{
-                this.sx = this.toSx;
-            }
-        }
     }
 
     if(resetSySxAnimation === true){
 
-        //console.log(this.sy +"--"+ this.fromSy);
-
-        if(this.sy >= this.fromSy){
-            if(this.sy > this.toSy){
-                this.sy-=yUpdateSpeed;
-            } else{
-                this.sy = this.toSy;
-            }
+        if(this.sy > this.toSy){
+            this.sy-=1;
+            console.log("1 if");
+        } else if(this.sy < this.toSy){
+            this.sy+=1;
+            console.log("1 else");
+        } else{
+            console.log("1 done");
+            this.axisYFullyReset = true;
         }
 
-        if(this.sy <= this.fromSy){
-            if(this.sy < this.toSy){
-                this.sy+=yUpdateSpeed;
-            } else{
-                this.sy = this.toSy;
-            }
+        if(this.sx > this.toSx){
+            this.sx-=1;
+            console.log("2 if");
+        } else if(this.sx < this.toSx){
+            this.sx+=1;
+            console.log("2 else");
+        } else{
+            console.log("2 done");
+            this.axisXFullyReset = true;
         }
 
-        if(this.sx >= this.fromSx){
-            if(this.sx > this.toSx){
-                this.sx-=xUpdateSpeed;
-            } else{
-                this.sx = this.toSx;
-            }
+        if(this.sy === this.toSy && this.sx === this.toSx){
+            blocksAxisData.push({
+                i:this.i,
+                y:this.axisYFullyReset,
+                x:this.axisXFullyReset
+            });
         }
 
-
-        if(this.sx <= this.fromSx){
-            if(this.sx < this.toSx){
-                this.sx+=xUpdateSpeed;
-            } else{
-                this.sx = this.toSx;
-            }
-        }
 
     }
 
@@ -271,7 +251,6 @@ img.onload = function(){
                   // post sysxanimation
                   if(activeBlocks[0].i == blocks[blocks.length-1].i){
                       if(activeBlocks[0].sx == activeBlocks[0].toSx && activeBlocks[0].sy == activeBlocks[0].toSy){
-
                           if(sySxAnimationReset === true){
                               sySxAnimationReset = false;
                               setTimeout(function(){
@@ -279,19 +258,33 @@ img.onload = function(){
                                   resetSySxAnimationFunction();
                               }, 2000);
                           }
-
                       }
-
                   }
-                  //window.cancelAnimationFrame(drawRequestID);
-                  //clearTimeout(drawTimeout);
                 }
 
-                if(updateAndRender == true){
+                if(blocksAxisData.length === blocks.length){
+                    for(var bi=0; bi>blocksAxisData.length; bi++){
+                        console.log(blocksAxisData[bi]);
+                        if(blocksAxisData[bi].x === false || blocksAxisData[bi].y === false){
+                            xOrYEqualsFalse = true;
+                        }
+                    }
+                    if(xOrYEqualsFalse === false){
+                        updateAndRender = false;
+                    }
+
+                }
+
+                if(updateAndRender === true){
                   // For some reason this still fires for 70 loops, not sure why, though this undefined IF at least stops errors in the console
                   if("undefined" !== typeof activeBlocks[ei]){
                     activeBlocks[ei].update();
                     activeBlocks[ei].render();
+                  }
+                } else {
+                  if(drawRequestID){
+                      window.cancelAnimationFrame(drawRequestID);
+                      console.log("cancelAnimationFrame");
                   }
                 }
             }
@@ -299,4 +292,4 @@ img.onload = function(){
         }, 1000 / 60);
     }
     draw();
-}
+};
