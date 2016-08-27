@@ -4,8 +4,7 @@
     var vendors = ['ms', 'moz', 'webkit', 'o'];
     for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
         window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
-        window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame']
-       || window[vendors[x]+'CancelRequestAnimationFrame'];
+        window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
     }
 
     if (!window.requestAnimationFrame)
@@ -40,12 +39,9 @@ var canvas = document.getElementById("canvas"),
   drawRequestID,
   drawTimeout,
   preStartSySxAnimationFlag = true,
-  resetSySxAnimation = false,
     blocksAxisData = [],
-    xOrYEqualsFalse = false,
-  startSySxAnimation = false,
-  startSySxAnimationFunctionJustOnce = false,
-  sySxAnimationReset = true;
+    xOrYIsFalse = false,
+  startSySxAnimation = false;
 
 img.src = "resources/site/images/rick-and-morty-get-schwifty.jpg";
 
@@ -56,7 +52,7 @@ canvas.height = window.innerHeight;
 img.onload = function(){
 
   function theLoop(){
-    var loopCount = 0;
+    var loopCount = 1;
     for(var colCount=0;colCount<columnPieces;colCount++){
       for(var rowCount=0;rowCount<rowPieces;rowCount++){
         blocks.push(
@@ -144,41 +140,6 @@ img.onload = function(){
 
     }
 
-    if(resetSySxAnimation === true){
-
-        if(this.sy > this.toSy){
-            this.sy-=1;
-            console.log("1 if");
-        } else if(this.sy < this.toSy){
-            this.sy+=1;
-            console.log("1 else");
-        } else{
-            console.log("1 done");
-            this.axisYFullyReset = true;
-        }
-
-        if(this.sx > this.toSx){
-            this.sx-=1;
-            console.log("2 if");
-        } else if(this.sx < this.toSx){
-            this.sx+=1;
-            console.log("2 else");
-        } else{
-            console.log("2 done");
-            this.axisXFullyReset = true;
-        }
-
-        if(this.sy === this.toSy && this.sx === this.toSx){
-            blocksAxisData.push({
-                i:this.i,
-                y:this.axisYFullyReset,
-                x:this.axisXFullyReset
-            });
-        }
-
-
-    }
-
   };
 
   Block.prototype.render = function(){
@@ -195,22 +156,6 @@ img.onload = function(){
               }
               startSySxAnimation = true; // This is for the block update function
           }
-          startSySxAnimationFunctionJustOnce = false;
-      }
-
-      function resetSySxAnimationFunction(){
-          if(startSySxAnimationFunctionJustOnce === true){
-              blocks.reverse();
-
-              for(var ei = 0; ei < activeBlocks.length-1; ++ei){
-                  activeBlocks[ei].toSy = blocks[ei].fromSy;
-                  activeBlocks[ei].toSx = blocks[ei].fromSx;
-                  activeBlocks[ei].fromSy = activeBlocks[ei].sy;
-                  activeBlocks[ei].fromSx = activeBlocks[ei].sx;
-              }
-              resetSySxAnimation = true; // This is for the block update function
-          }
-          startSySxAnimationFunctionJustOnce = false;
       }
 
     //draw the screen
@@ -222,8 +167,6 @@ img.onload = function(){
             if(activeBlocks.length <= blocks.length){
 
               activeBlocks.push(blocks[workingPiece]);
-
-              blocks[workingPiece];
 
               if(workingPiece <= totalPieces){
                 workingPiece = workingPiece+1;
@@ -240,7 +183,7 @@ img.onload = function(){
                 if((blocks[blocks.length-1].x != blocks[blocks.length-1].toX) || (blocks[blocks.length-1].y != blocks[blocks.length-1].toY)){
                   updateAndRender = true;
                 }else{
-                  //updateAndRender = false;
+
                   if(preStartSySxAnimationFlag === true){
                       setTimeout(function(){
                           startSySxAnimationFunctionJustOnce = true;
@@ -248,29 +191,25 @@ img.onload = function(){
                       }, 2000);
                       preStartSySxAnimationFlag = false;
                   }
-                  // post sysxanimation
-                  if(activeBlocks[0].i == blocks[blocks.length-1].i){
-                      if(activeBlocks[0].sx == activeBlocks[0].toSx && activeBlocks[0].sy == activeBlocks[0].toSy){
-                          if(sySxAnimationReset === true){
-                              sySxAnimationReset = false;
-                              setTimeout(function(){
-                                  startSySxAnimationFunctionJustOnce = true;
-                                  resetSySxAnimationFunction();
-                              }, 2000);
-                          }
-                      }
-                  }
+
                 }
 
                 if(blocksAxisData.length === blocks.length){
-                    for(var bi=0; bi>blocksAxisData.length; bi++){
-                        console.log(blocksAxisData[bi]);
+
+                    for(var bi=0; bi<blocksAxisData.length; bi++){
+                        // This if should only fire if the x or y axis is false, (meaning that one or the other hasn't been reset to do the final animation)
                         if(blocksAxisData[bi].x === false || blocksAxisData[bi].y === false){
-                            xOrYEqualsFalse = true;
+                            xOrYIsFalse = true;
+                            break;
+                        }
+                        // The last itteration to stop under and rendering on the canvas
+                        if(bi === blocksAxisData.length-1){
+                            xOrYIsFalse = true;
                         }
                     }
-                    if(xOrYEqualsFalse === false){
+                    if(xOrYIsFalse === true){
                         updateAndRender = false;
+                        break;
                     }
 
                 }
@@ -284,7 +223,7 @@ img.onload = function(){
                 } else {
                   if(drawRequestID){
                       window.cancelAnimationFrame(drawRequestID);
-                      console.log("cancelAnimationFrame");
+
                   }
                 }
             }
