@@ -29,11 +29,13 @@
 
         // Defaults
         var defaults = {
-            elementId: "canvas",
+            selector: "canvas",
             rowPieces: 8,
             columnPieces: 8,
             yUpdateSpeed: 50,
             xUpdateSpeed: 50,
+            width: window.innerWidth,
+            height: window.innerHeight
         };
 
         // Create options by extending defaults with the passed in arugments
@@ -51,7 +53,7 @@
             return source;
         }
 
-        var canvas = document.getElementById(this.options.elementId),
+        var canvas = document.querySelector(this.options.selector),
           context = canvas.getContext("2d"),
           img = new Image(),
           rowPieces = this.options.rowPieces,
@@ -73,8 +75,8 @@
         img.src = this.options.img;
 
         //   // set height & width
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        canvas.width = this.options.width;
+        canvas.height = this.options.height;
 
         img.onload = function(){
 
