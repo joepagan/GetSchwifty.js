@@ -1,7 +1,7 @@
 # GetSchwifty.js
 GetSchwifty.js - an experimental javascript canvas animation thingy mbob
 
-View the [Demo Page](https://lexbi.github.io/GetSchwifty.js/).
+View the [Demo Page](https://joepagan.github.io/GetSchwifty.js/).
 
 GetSchwifty.js loads in an image in block by block from top left to bottom right, it then disperse the blocks in an inverted pattern to obfuscate the image.
 
